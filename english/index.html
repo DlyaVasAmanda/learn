@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 7–8 Quest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: sticky XP bar on top, one reading column of lessons; each lesson is a stack of test-format exercise blocks. */
+:root{
+  --bg:#f3f5f2;
+  --card:#ffffff;
+  --ink:#18211d;
+  --muted:#5f6b65;
+  --line:#dfe5e1;
+  --accent:#0d7a5f;      /* book green */
+  --accent-soft:#e1f1eb;
+  --xp:#e39b0b;          /* XP amber */
+  --xp-soft:#fdf1d8;
+  --good:#1c8a4a; --good-soft:#e2f4e8;
+  --bad:#c93b3b;  --bad-soft:#fbe6e6;
+  --font-display:"Unbounded","Golos Text",system-ui,sans-serif;
+  --font-body:"Golos Text",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --radius:14px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#111613; --card:#1a211d; --ink:#e8eee9; --muted:#9aa7a0; --line:#2b3530;
+    --accent:#3cc095; --accent-soft:#16352a; --xp:#f2b134; --xp-soft:#3a2e12;
+    --good:#4cc77b; --good-soft:#163222; --bad:#ff7a7a; --bad-soft:#3a1c1c;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111613; --card:#1a211d; --ink:#e8eee9; --muted:#9aa7a0; --line:#2b3530;
+  --accent:#3cc095; --accent-soft:#16352a; --xp:#f2b134; --xp-soft:#3a2e12;
+  --good:#4cc77b; --good-soft:#163222; --bad:#ff7a7a; --bad-soft:#3a1c1c;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.5}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:6px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.num{font-variant-numeric:tabular-nums}
+
+/* top bar */
+.top{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--line)}
+.top-in{max-width:880px;margin:0 auto;padding:12px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center}
+.lvl{display:flex;align-items:center;gap:10px}
+.lvl-n{width:42px;height:42px;border-radius:12px;background:var(--accent);color:#fff;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:18px}
+.lvl-t{line-height:1.2}
+.lvl-t b{display:block;font-size:15px}
+.lvl-t span{font-size:12px;color:var(--muted)}
+.xpbar{display:flex;flex-direction:column;gap:4px;min-width:0}
+.xpbar-track{height:10px;border-radius:99px;background:var(--xp-soft);overflow:hidden}
+.xpbar-fill{height:100%;background:var(--xp);border-radius:99px;transition:width .5s ease}
+.xpbar-lbl{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+.xpbar-lbl b{color:var(--ink)}
+.top-r{display:flex;gap:8px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:99px;font-size:13px;font-weight:600;background:var(--bg);border:1px solid var(--line);white-space:nowrap}
+.chip.combo{background:var(--xp-soft);border-color:transparent;color:var(--ink)}
+.chip.combo[hidden]{display:none}
+.chip.test{background:var(--accent-soft);border-color:transparent}
+
+nav.tabs{max-width:880px;margin:0 auto;padding:0 16px;display:flex;gap:4px}
+.tab{background:none;border:0;padding:10px 12px;border-bottom:3px solid transparent;color:var(--muted);font-weight:600}
+.tab[aria-current="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.tab .cnt{display:inline-block;min-width:20px;padding:0 6px;margin-left:4px;border-radius:99px;background:var(--bad-soft);color:var(--bad);font-size:12px}
+
+main{max-width:880px;margin:0 auto;padding:20px 16px 80px;display:flex;flex-direction:column;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.sync{font-size:12px;color:var(--muted);text-align:right}
+
+/* home */
+.hero{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+.hero h1{font-family:var(--font-display);font-size:22px;font-weight:700;letter-spacing:-.01em}
+.hero p{margin:6px 0 0;color:var(--muted)}
+.btn{border:0;border-radius:10px;padding:10px 16px;font-weight:700;background:var(--accent);color:#fff}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:default;filter:none}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.stat b{display:block;font-family:var(--font-display);font-size:20px;font-weight:700}
+.stat span{font-size:12px;color:var(--muted)}
+.lessons{display:flex;flex-direction:column;gap:10px}
+.lesson{display:grid;grid-template-columns:64px 1fr auto;gap:14px;align-items:center;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--line);border-radius:12px;padding:14px;text-align:left;width:100%}
+.lesson.ready{border-left-color:var(--accent)}
+.lesson.done{border-left-color:var(--good)}
+.lesson.locked{cursor:default;opacity:.72}
+.lesson .date{font-size:12px;color:var(--muted);line-height:1.2}
+.lesson .date b{display:block;font-family:var(--font-display);font-size:18px;color:var(--ink)}
+.lesson h3{font-size:16px}
+.lesson p{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.prog{height:6px;background:var(--bg);border-radius:99px;overflow:hidden;margin-top:8px;max-width:260px}
+.prog i{display:block;height:100%;background:var(--accent)}
+.pill{font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--bg);color:var(--muted);white-space:nowrap}
+.pill.go{background:var(--accent-soft);color:var(--accent)}
+.pill.ok{background:var(--good-soft);color:var(--good)}
+
+/* lesson */
+.back{background:none;border:0;color:var(--accent);font-weight:700;padding:0;align-self:flex-start}
+.lhead h2{font-family:var(--font-display);font-size:22px;font-weight:700}
+.lhead p{margin:4px 0 0;color:var(--muted)}
+.lhead .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.sec-h h3{font-size:17px}
+.sec-h .sec-tag{font-family:var(--font-display);color:var(--accent);margin-right:6px}
+.sec-h small{color:var(--muted);font-size:13px}
+.sec-sub{margin:-6px 0 12px;color:var(--muted);font-size:14px}
+
+.vgroup{margin-bottom:14px}
+.vgroup h4{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.vcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px}
+.vcard{border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:10px 12px;text-align:left;min-height:74px;display:flex;flex-direction:column;justify-content:space-between;gap:6px}
+.vcard .en{font-weight:700}
+.vcard .ru{color:var(--muted);font-size:14px}
+.vcard .ru[hidden]{display:none}
+.vcard .note{font-size:12px;color:var(--xp)}
+.vcard.known{background:var(--good-soft);border-color:transparent}
+.vcard .vact{display:flex;gap:6px}
+.vcard .vact button{font-size:12px;padding:3px 8px;border-radius:7px;border:1px solid var(--line);background:var(--card)}
+.vcard.known .vact .kn{color:var(--good);border-color:transparent}
+
+.items{display:flex;flex-direction:column;gap:10px}
+.item{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card)}
+.item.ok{border-color:var(--good);background:var(--good-soft)}
+.item.fail{border-color:var(--bad);background:var(--bad-soft)}
+.q{display:flex;gap:10px}
+.q .n{font-family:var(--font-display);font-size:13px;color:var(--muted);min-width:20px;padding-top:2px}
+.q .txt{flex:1}
+.opts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:10px 0 0 30px}
+.opt{border:1px solid var(--line);background:var(--bg);border-radius:9px;padding:7px 10px;text-align:left}
+.opt:hover:not(:disabled){border-color:var(--accent)}
+.opt.right{background:var(--good);color:#fff;border-color:var(--good)}
+.opt.wrong{background:var(--bad);color:#fff;border-color:var(--bad)}
+.opt:disabled{cursor:default}
+.fb{margin:8px 0 0 30px;font-size:14px;color:var(--muted)}
+.fb:empty{display:none}
+.fb .tagok{color:var(--good);font-weight:700}
+.fb .tagbad{color:var(--bad);font-weight:700}
+.fb .gain{color:var(--xp);font-weight:700}
+input.word{border:0;border-bottom:2px solid var(--muted);background:transparent;padding:1px 4px;min-width:140px;width:auto;border-radius:0}
+input.word:focus{outline:none;border-bottom-color:var(--accent);background:var(--accent-soft)}
+input.word.ok{border-bottom-color:var(--good);color:var(--good);font-weight:700}
+input.word.bad{border-bottom-color:var(--bad);color:var(--bad)}
+.def-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0 0 30px}
+.def-row .hint{font-family:var(--font-display);font-size:13px;color:var(--muted)}
+.chk{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:4px 12px;font-weight:600;font-size:14px}
+.chk:hover{border-color:var(--accent)}
+.bank{display:flex;flex-wrap:wrap;gap:6px;padding:10px;border:1px dashed var(--line);border-radius:10px;margin-bottom:12px}
+.bank button{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:3px 12px;font-size:14px}
+.bank button.used{text-decoration:line-through;opacity:.5}
+.match-row{display:grid;grid-template-columns:1fr minmax(0,1.3fr);gap:10px;align-items:center}
+.match-row select{padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--bg);width:100%}
+.match-row select:disabled{opacity:1}
+
+.done-banner{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--good-soft);border:1px solid var(--good);border-radius:12px;padding:12px 14px}
+.done-banner b{color:var(--good)}
+
+/* badges */
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.badge{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.badge .ico{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-weight:700;font-size:14px;background:var(--bg);color:var(--muted);flex:none}
+.badge.got .ico{background:var(--xp);color:#fff}
+.badge b{display:block;font-size:15px}
+.badge span{font-size:13px;color:var(--muted)}
+.badge:not(.got){opacity:.65}
+.lvl-list{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.lvl-row{display:flex;justify-content:space-between;padding:8px 12px;border-radius:9px;background:var(--bg);font-size:14px}
+.lvl-row.cur{background:var(--accent-soft);font-weight:700}
+
+.empty{text-align:center;color:var(--muted);padding:28px 10px}
+
+/* toasts + modal */
+.toasts{position:fixed;right:16px;top:84px;z-index:50;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{background:var(--ink);color:var(--card);border-radius:10px;padding:8px 14px;font-weight:700;font-size:14px;animation:pop .25s ease-out;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.toast.xp{background:var(--xp);color:#1d1606}
+@keyframes pop{from{transform:translateY(-8px);opacity:0}to{transform:none;opacity:1}}
+.modal{position:fixed;inset:0;z-index:60;background:rgba(10,15,12,.55);display:grid;place-items:center;padding:16px}
+.modal[hidden]{display:none}
+.modal-in{background:var(--card);border-radius:18px;padding:28px 24px;max-width:360px;width:100%;text-align:center;animation:pop .3s ease-out}
+.modal-in .big{font-family:var(--font-display);font-size:44px;font-weight:700;color:var(--xp);line-height:1}
+.modal-in h3{font-family:var(--font-display);font-size:20px;margin:10px 0 6px}
+.modal-in p{color:var(--muted);margin:0 0 18px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+@media (max-width:640px){
+  .top-in{grid-template-columns:auto 1fr;}
+  .top-r{grid-column:1 / -1;flex-wrap:wrap}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .opts{grid-template-columns:1fr 1fr;margin-left:0}
+  .fb,.def-row{margin-left:0}
+  .hero{grid-template-columns:1fr}
+  .lesson{grid-template-columns:52px 1fr}
+  .lesson .pill{grid-column:2;justify-self:start}
+  .match-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="lvl">
+      <div class="lvl-n num" id="lvlN">1</div>
+      <div class="lvl-t"><b id="lvlName">Intern</b><span>уровень</span></div>
+    </div>
+    <div class="xpbar">
+      <div class="xpbar-track"><div class="xpbar-fill" id="xpFill" style="width:0%"></div></div>
+      <div class="xpbar-lbl"><span><b class="num" id="xpNow">0</b> XP</span><span id="xpNext">до Trainee: 100 XP</span></div>
+    </div>
+    <div class="top-r">
+      <span class="chip combo num" id="combo" hidden>серия ×0</span>
+      <span class="chip test num" id="countdown">до теста —</span>
+    </div>
+  </div>
+  <nav class="tabs" aria-label="Разделы">
+    <button class="tab" data-view="home" aria-current="true">Уроки</button>
+    <button class="tab" data-view="mistakes">Ошибки <span class="cnt num" id="mCnt">0</span></button>
+    <button class="tab" data-view="badges">Достижения</button>
+  </nav>
+</header>
+
+<main id="main"></main>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="modal" id="modal" hidden>
+  <div class="modal-in" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="big" id="modalBig">3</div>
+    <h3 id="modalTitle">Новый уровень</h3>
+    <p id="modalText"></p>
+    <button class="btn" id="modalBtn">Дальше</button>
+  </div>
+</div>
+
+<script>
+/* ======================= CONTENT ======================= */
+const TEST_DATE = new Date(2026, 11, 8);
+
+const LEVELS = [
+  {xp:0,name:"Intern"},{xp:100,name:"Trainee"},{xp:250,name:"Junior Analyst"},
+  {xp:450,name:"Analyst"},{xp:700,name:"Senior Analyst"},{xp:1000,name:"Risk Manager"},
+  {xp:1400,name:"Head of Strategy"},{xp:1900,name:"Decision Maker"},{xp:2500,name:"CEO"}
+];
+
+const BADGES = [
+  {id:"first",  ico:"1",  name:"Первый шаг",          desc:"Первый правильный ответ"},
+  {id:"combo5", ico:"×5", name:"Разогрев",            desc:"5 правильных ответов подряд"},
+  {id:"combo15",ico:"×15",name:"В ударе",             desc:"15 правильных ответов подряд"},
+  {id:"perfect",ico:"✓",  name:"Чистая работа",       desc:"Упражнение без единой ошибки"},
+  {id:"speller",ico:"Aa", name:"Орфограф",            desc:"Всё «определение → слово» с первой попытки"},
+  {id:"words30",ico:"30", name:"Словарный запас",     desc:"Отметить 30 слов как выученные"},
+  {id:"fixer",  ico:"↺",  name:"Работа над ошибками", desc:"Исправить 5 ошибок во вкладке «Ошибки»"},
+  {id:"L1",     ico:"7",  name:"Риск-менеджер",       desc:"Пройти урок 1 (лексика Unit 7)"},
+  {id:"lvl4",   ico:"A",  name:"Аналитик",            desc:"Дойти до уровня Analyst"}
+];
+
+const LESSONS = [
+{
+  id:"L1", dow:"Ср", day:"18.11", title:"Лексика Unit 7", sub:"7.1 Managing and minimising risk · 7.2 Risk in investment", ready:true,
+  vocab:[
+    {g:"Сочетания с risk (7.1, упр. 6A)", w:[
+      ["take a (calculated) risk","(сознательно) рискнуть","не make a risk"],
+      ["run the risk of + -ing","рисковать (чем-то плохим)","run the risk of losing"],
+      ["be at risk (of / from)","быть под угрозой","предлог at"],
+      ["a major / potential risk","серьёзный / возможный риск"],
+      ["manage / minimise / reduce the risk","управлять / минимизировать / снижать риск"],
+      ["mitigate (a) risk","смягчать риск, уменьшать последствия"],
+      ["prevent risk","предотвращать риск"]
+    ]},
+    {g:"Сочетания с «дисков» (7.1, упр. 5A)", w:[
+      ["preventive measures","превентивные меры"],
+      ["suffer damage","получить ущерб, пострадать"],
+      ["test solutions","проверять решения"],
+      ["prevent disasters","предотвращать катастрофы"],
+      ["pose a threat (to)","представлять угрозу (для)"],
+      ["forward thinking","дальновидность, мышление на перспективу"],
+      ["risk analysis","анализ рисков","carry out a risk analysis"],
+      ["assess hazards / risk","оценивать опасности / риск"]
+    ]},
+    {g:"Видео и пожарная безопасность", w:[
+      ["resilient","устойчивый, быстро восстанавливающийся"],
+      ["quakeproof","сейсмостойкий"],
+      ["vulnerable (to)","уязвимый (для)"],
+      ["exposed to","подверженный (чему-то)"],
+      ["collapse","обрушиться"],
+      ["demolish","снести (здание)"],
+      ["insured losses","застрахованные убытки"],
+      ["shock absorber","амортизатор"],
+      ["fire hazard","пожароопасный объект"],
+      ["fire resistant","огнестойкий"],
+      ["occupants","люди, находящиеся в здании"],
+      ["evacuation plan","план эвакуации"],
+      ["assembly point","место сбора"],
+      ["emergency exit","запасный выход"]
+    ]},
+    {g:"Инвестиции (7.2, статья про Markowitz)", w:[
+      ["groundbreaking","новаторский, прорывной"],
+      ["portfolio","портфель (ценных бумаг)"],
+      ["stockbroker","биржевой брокер"],
+      ["variance","разброс, степень различия"],
+      ["volatile","нестабильный, резко меняющийся"],
+      ["returns","доход с инвестиций"],
+      ["diversification","диверсификация, распределение вложений"],
+      ["strike up a conversation","завязать разговор"],
+      ["underpin","лежать в основе"],
+      ["self-evident","само собой разумеющийся"]
+    ]}
+  ],
+  sections:[
+    {id:"A", type:"mcq", title:"Choose the correct option", sub:"Как в тесте: выбери a, b, c или d.", items:[
+      {q:"The company decided to ___ a calculated risk and launched the product early.", o:["make","take","do","pose"], a:1, ex:"take a (calculated) risk. С risk не говорят make или do."},
+      {q:"The old wiring in the warehouse ___ a serious threat to staff.", o:["runs","suffers","poses","takes"], a:2, ex:"pose a threat (to sb): представлять угрозу."},
+      {q:"If we don't back up the data, we ___ the risk of losing everything.", o:["run","make","pose","suffer"], a:0, ex:"run the risk of + -ing."},
+      {q:"Several houses ___ serious damage in the storm.", o:["posed","suffered","prevented","mitigated"], a:1, ex:"suffer damage: получить ущерб."},
+      {q:"Thanks to the ___ thinking of the engineers, the building survived the earthquake.", o:["preventive","calculated","forward","potential"], a:2, ex:"forward thinking: дальновидность. С measures говорят preventive measures."},
+      {q:"Before construction began, a detailed risk ___ was carried out.", o:["measure","analysis","hazard","solution"], a:1, ex:"carry out a risk analysis."},
+      {q:"Share prices are very ___ at the moment. They rise and fall without warning.", o:["resilient","groundbreaking","volatile","self-evident"], a:2, ex:"volatile: резко и неожиданно меняющийся."},
+      {q:"Buildings near the river are more ___ to flooding, so insurance there is expensive.", o:["exposed","resistant","mitigated","assessed"], a:0, ex:"exposed to: подверженный. Resistant по смыслу противоречит дорогой страховке."},
+      {q:"The new safety rules aim to ___ the risk of accidents in the factory.", o:["run","pose","minimise","suffer"], a:2, ex:"minimise / reduce / mitigate the risk: снижать риск."},
+      {q:"Children living near the chemical plant are ___ risk.", o:["in","on","at","under"], a:2, ex:"be at risk (of / from)."},
+      {q:"Investors expect higher ___ to compensate for higher risk.", o:["returns","variances","hazards","portfolios"], a:0, ex:"returns: доходность. Чем выше риск, тем выше ожидаемый доход."},
+      {q:"Markowitz's ideas still ___ much of modern investing.", o:["underpin","undermine","underline","undergo"], a:0, ex:"underpin: лежать в основе. Undermine значит «подрывать», почти противоположное."}
+    ]},
+    {id:"B", type:"match", title:"Match the verbs and nouns", sub:"Сопоставь начало и конец сочетания.", options:["a conversation","damaged buildings","risk","a threat","a risk analysis","damage"], items:[
+      {q:"pose", a:3}, {q:"suffer", a:5}, {q:"strike up", a:0}, {q:"carry out", a:4}, {q:"be at", a:2}, {q:"demolish", a:1}
+    ]},
+    {id:"C", type:"gap", title:"Complete the sentences", sub:"Впиши слово из рамки. Два слова лишние. Можно нажать на слово, чтобы вставить его в выбранный пропуск.",
+     bank:["resilient","preventive","occupants","insured losses","quakeproof","vulnerable","diversification","portfolio","evacuation","groundbreaking"], items:[
+      {q:"After the earthquake, ___ were estimated at $2 billion.", a:["insured losses"]},
+      {q:"Engineers want cities to be more ___ so that they recover quickly after a disaster.", a:["resilient"]},
+      {q:"In case of fire, all ___ must leave the building and go to the assembly point.", a:["occupants"]},
+      {q:"Our ___ plan says that we use the stairs, never the lifts.", a:["evacuation"]},
+      {q:"Spreading your money across different types of investment is called ___.", a:["diversification"]},
+      {q:"Her ___ includes shares in tech companies and government bonds.", a:["portfolio"]},
+      {q:"Markowitz published a ___ paper on risk in 1952.", a:["groundbreaking"]},
+      {q:"Older brick buildings are especially ___ in earthquake regions.", a:["vulnerable"]}
+    ]},
+    {id:"D", type:"define", title:"Write the word", sub:"Определение → слово. Важна каждая буква, как на тесте.", items:[
+      {q:"a person whose job is to buy and sell shares for other people", a:["stockbroker"]},
+      {q:"the amount by which two things differ or change", a:["variance"]},
+      {q:"built so that earthquakes cannot damage it", a:["quakeproof"]},
+      {q:"to make a risk or its effects less serious", a:["mitigate"]},
+      {q:"something dangerous, e.g. old electrical cables or a wet floor", a:["hazard"]},
+      {q:"(of a building) to fall down suddenly", a:["collapse"]},
+      {q:"to knock down a building completely", a:["demolish"]},
+      {q:"so obvious that it needs no explanation", a:["self-evident"]},
+      {q:"to be the basis or foundation of something", a:["underpin"]},
+      {q:"the place where people meet after leaving a building in an emergency", a:["assembly point"]},
+      {q:"a device that reduces the force of a sudden movement", a:["shock absorber"]},
+      {q:"able to recover quickly after a disaster or difficulty", a:["resilient"]}
+    ]}
+  ]
+},
+{id:"L2", dow:"Чт", day:"19.11", title:"Грамматика Unit 7", sub:"Second, third и mixed conditionals · альтернативы if", ready:false},
+{id:"L3", dow:"Ср", day:"25.11", title:"Фразы 7.3–7.5 + Workshop 7 + Review 7", sub:"Talking about risk · Analysing risks · Accident report · мини-тест", ready:false},
+{id:"L4", dow:"Чт", day:"26.11", title:"Лексика Unit 8", sub:"8.1 Decisions · 8.2 Better decision-making", ready:false},
+{id:"L5", dow:"Ср", day:"02.12", title:"Грамматика и фразы Unit 8 + Workshop 8 + Review 8", sub:"to + infinitive / -ing · как не повторять слова · мини-тест", ready:false},
+{id:"L6", dow:"Чт", day:"03.12", title:"Пробная контрольная 7+8", sub:"Полный формат теста с подсчётом баллов", ready:false}
+];
+
+/* index items */
+const INDEX = {};
+const VOCAB_IDS = [];
+LESSONS.forEach(L=>{
+  if(!L.ready) return;
+  L.sections.forEach(S=>S.items.forEach((it,i)=>{ it.id=`${L.id}-${S.id}${i+1}`; it.n=i+1; INDEX[it.id]={L,S,it}; }));
+  L.vocab.forEach((g,gi)=>g.w.forEach((w,wi)=>{ const id=`${L.id}-v${gi}-${wi}`; w.id=id; VOCAB_IDS.push(id); }));
+});
+
+/* ======================= STATE ======================= */
+const LS_KEY="unit78quest.v1";
+function fresh(){return {v:1,xp:0,items:{},mistakes:[],badges:[],known:{},bonus:{},fixed:0,bestCombo:0,replay:{},updated:0};}
+function normalize(s){const f=fresh(); s=s&&typeof s==="object"?s:{}; for(const k in f){ if(s[k]===undefined) s[k]=f[k]; } return s;}
+let state = fresh();
+try{ const raw=localStorage.getItem(LS_KEY); if(raw) state=normalize(JSON.parse(raw)); }catch(e){}
+let combo=0;
+let review={};          // ephemeral per-visit status in the mistakes tab
+let view="home", curLesson=null, lastInput=null;
+
+/* ======================= STORAGE (cloud db + local mirror) ======================= */
+let db=null, docRef=null, dbWritable=true, saveT=null, inflight=false, again=false, syncMode="local";
+function persistLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
+function setSync(m){ syncMode=m; const el=document.getElementById("sync"); if(el) el.textContent=syncText(); }
+function syncText(){ return syncMode==="cloud" ? "Прогресс сохраняется в облаке" : syncMode==="loading" ? "Загружаю прогресс…" : "Прогресс сохраняется в этом браузере"; }
+function save(){ persistLocal(); if(!docRef||!dbWritable) return; clearTimeout(saveT); saveT=setTimeout(flush,1000); }
+async function flush(){
+  if(inflight){again=true;return;}
+  inflight=true;
+  try{ state.updated=Date.now(); await docRef.set(JSON.parse(JSON.stringify(state))); setSync("cloud"); }
+  catch(e){
+    const c=e&&e.code;
+    if(c==="unavailable"){ setTimeout(save, 1500+Math.random()*1500); }
+    else { dbWritable=false; setSync("local"); }
+  }
+  inflight=false;
+  if(again){again=false; flush();}
+}
+function timeout(ms){ return new Promise(r=>setTimeout(()=>r("__timeout"),ms)); }
+async function initDb(){
+  let tries=0;
+  while(!(window.claude && typeof window.claude.use==="function") && tries<20){ await new Promise(r=>setTimeout(r,150)); tries++; }
+  if(!(window.claude && typeof window.claude.use==="function")){ setSync("local"); return; }
+  setSync("loading");
+  try{
+    const d = await Promise.race([window.claude.use("db"), timeout(10000)]);
+    if(!d || d==="__timeout"){ setSync("local"); return; }
+    db=d; docRef=db.doc("progress/main");
+    const snap = await Promise.race([docRef.get(), timeout(10000)]);
+    if(snap==="__timeout"){ setSync("local"); docRef=null; return; }
+    if(snap.exists){
+      const remote = normalize(JSON.parse(JSON.stringify(snap.data())));
+      if((remote.xp||0) >= (state.xp||0)){ state=remote; persistLocal(); render(); }
+      else save();
+    } else { save(); }
+    setSync("cloud");
+  }catch(e){ docRef=null; setSync("local"); }
+}
+
+/* ======================= HELPERS ======================= */
+const $ = (s,el=document)=>el.querySelector(s);
+function h(tag, attrs={}, ...kids){
+  const el=document.createElement(tag);
+  for(const k in attrs){
+    const v=attrs[k];
+    if(k==="class") el.className=v;
+    else if(k.startsWith("on")) el.addEventListener(k.slice(2),v);
+    else if(v===true) el.setAttribute(k,"");
+    else if(v!==false && v!=null) el.setAttribute(k,v);
+  }
+  kids.flat().forEach(c=>{ if(c==null||c===false) return; el.append(c.nodeType?c:document.createTextNode(String(c))); });
+  return el;
+}
+function plural(n,f){ const a=Math.abs(n)%100, b=a%10; if(a>10&&a<20) return f[2]; if(b>1&&b<5) return f[1]; if(b===1) return f[0]; return f[2]; }
+function norm(s){ return String(s||"").toLowerCase().replace(/[’`]/g,"'").replace(/\s+/g," ").replace(/\s*-\s*/g,"-").trim().replace(/[.!]+$/,""); }
+function levelIdx(xp){ let i=0; LEVELS.forEach((l,k)=>{ if(xp>=l.xp) i=k; }); return i; }
+function toast(text, cls=""){
+  const t=h("div",{class:"toast "+cls},text); $("#toasts").append(t);
+  setTimeout(()=>t.remove(), 1800);
+}
+function showModal(big,title,text){
+  $("#modalBig").textContent=big; $("#modalTitle").textContent=title; $("#modalText").textContent=text;
+  $("#modal").hidden=false; $("#modalBtn").focus();
+}
+$("#modalBtn").addEventListener("click",()=>{ $("#modal").hidden=true; });
+
+function gain(n, why){
+  if(!n) return;
+  const before=levelIdx(state.xp);
+  state.xp+=n;
+  toast(`+${n} XP${why?" · "+why:""}`,"xp");
+  const after=levelIdx(state.xp);
+  if(after>before){
+    showModal(String(after+1), LEVELS[after].name, `Новый уровень: ${after+1}. Так держать!`);
+    if(after>=3) award("lvl4");
+  }
+  updateHeader();
+}
+function award(id){
+  if(state.badges.includes(id)) return;
+  state.badges.push(id);
+  const b=BADGES.find(x=>x.id===id);
+  if(b) toast(`Достижение: ${b.name}`);
+}
+function bumpCombo(ok){
+  if(ok){ combo++; if(combo>state.bestCombo) state.bestCombo=combo; if(combo>=5) award("combo5"); if(combo>=15) award("combo15"); }
+  else combo=0;
+  const c=$("#combo"); c.hidden=combo<2; c.textContent=`серия ×${combo}`;
+}
+
+/* ======================= ANSWER LOGIC ======================= */
+function lessonProgress(L){
+  if(!L.ready) return {done:0,total:0,pct:0};
+  let total=0,done=0;
+  L.sections.forEach(S=>S.items.forEach(it=>{ total++; if(state.items[it.id]&&state.items[it.id].d) done++; }));
+  return {done,total,pct: total?Math.round(done/total*100):0};
+}
+function answer(id, ok){
+  const st = state.items[id] || (state.items[id]={t:0});
+  if(st.d) return st;
+  const {L,S} = INDEX[id];
+  const replay = !!state.replay[L.id];
+  if(ok){
+    st.d=1; st.ok=1;
+    const g = replay?0:(st.t===0?10:5);
+    st.g=g; award("first"); bumpCombo(true);
+    if(g) gain(g, st.t===0?"с первой попытки":"со второй попытки"); else toast("Верно (повтор, без XP)");
+  } else {
+    st.t=(st.t||0)+1; bumpCombo(false);
+    if(!state.mistakes.includes(id)) state.mistakes.push(id);
+    if(st.t>=2){ st.d=1; st.ok=0; }
+  }
+  checkSection(L,S,replay);
+  save(); updateHeader();
+  return st;
+}
+function checkSection(L,S,replay){
+  const all=S.items.every(it=>state.items[it.id]&&state.items[it.id].d);
+  if(!all) return;
+  const key=`sec:${L.id}-${S.id}`;
+  const perfect=S.items.every(it=>state.items[it.id].ok&&state.items[it.id].t===0);
+  if(!state.bonus[key]){
+    state.bonus[key]=1;
+    if(!replay){ gain(20,"упражнение пройдено"); if(perfect) gain(20,"без ошибок"); }
+  }
+  if(perfect){ award("perfect"); if(S.type==="define") award("speller"); }
+  const lessonDone=L.sections.every(s=>s.items.every(it=>state.items[it.id]&&state.items[it.id].d));
+  if(lessonDone){
+    const lk=`les:${L.id}`;
+    if(!state.bonus[lk]){ state.bonus[lk]=1; if(!replay) gain(50,"урок пройден"); }
+    award(L.id);
+    if(view==="lesson") setTimeout(()=>render(),900);
+  }
+}
+function reviewAnswer(id, ok){
+  const r = review[id] || (review[id]={t:0});
+  if(r.fixed) return r;
+  if(ok){
+    r.fixed=1; state.mistakes=state.mistakes.filter(x=>x!==id); state.fixed=(state.fixed||0)+1;
+    bumpCombo(true); gain(5,"ошибка исправлена");
+    if(state.fixed>=5) award("fixer");
+  } else { r.t++; bumpCombo(false); }
+  save(); updateHeader();
+  return r;
+}
+
+/* ======================= ITEM RENDERERS ======================= */
+function statusFor(id, ctx){
+  if(ctx==="review"){ const r=review[id]||{t:0}; return {done:!!r.fixed||r.t>=1&&false, ok:!!r.fixed, t:r.t, review:true}; }
+  const st=state.items[id]; return st?{done:!!st.d, ok:!!st.ok, t:st.t||0, g:st.g}:{done:false,ok:false,t:0};
+}
+function fbText(it, S, st, ctx){
+  const frag=document.createDocumentFragment();
+  if(ctx==="review"){
+    if(st.ok){ frag.append(h("span",{class:"tagok"},"Исправлено"), " ", h("span",{class:"gain"},"+5 XP")); }
+    else if(st.t>0){ frag.append(h("span",{class:"tagbad"},"Пока неверно. "), "Правильный ответ: ", h("b",{},answerText(it,S)), ". Попробуй ещё раз позже: ошибка останется в списке."); }
+    if(it.ex && (st.ok||st.t>0)) frag.append(h("div",{},it.ex));
+    return frag;
+  }
+  if(!st.done){
+    if(st.t>0) frag.append(h("span",{class:"tagbad"},"Неверно."), " Осталась одна попытка, за неё +5 XP.");
+    return frag;
+  }
+  if(st.ok){ frag.append(h("span",{class:"tagok"}, st.t===0?"Верно с первой попытки":"Верно со второй попытки"), " "); if(st.g) frag.append(h("span",{class:"gain"},`+${st.g} XP`)); }
+  else frag.append(h("span",{class:"tagbad"},"Ответ: "), h("b",{},answerText(it,S)), ". Добавлено в «Ошибки».");
+  if(it.ex) frag.append(h("div",{},it.ex));
+  return frag;
+}
+function answerText(it,S){
+  if(S.type==="mcq") return it.o[it.a];
+  if(S.type==="match") return `${it.q} ${S.options[it.a]}`;
+  return it.a[0];
+}
+
+function renderItem(it, S, ctx){
+  const box=h("div",{class:"item","data-id":it.id});
+  const st=statusFor(it.id,ctx);
+  const fb=h("div",{class:"fb"});
+  const refresh=()=>{
+    const s=statusFor(it.id,ctx);
+    box.className="item"+(s.ok?" ok":(ctx!=="review"&&s.done&&!s.ok)?" fail":"");
+    fb.replaceChildren(fbText(it,S,s,ctx));
+  };
+  const submit=(ok)=>{ if(ctx==="review") reviewAnswer(it.id,ok); else answer(it.id,ok); };
+  const isDone=()=>{ const s=statusFor(it.id,ctx); return ctx==="review"? s.ok : s.done; };
+
+  if(S.type==="mcq"){
+    box.append(h("div",{class:"q"},h("span",{class:"n num"},it.n),h("div",{class:"txt"},it.q)));
+    const opts=h("div",{class:"opts"});
+    it.o.forEach((o,i)=>{
+      const b=h("button",{class:"opt",type:"button"},`${"abcd"[i]}) ${o}`);
+      b.addEventListener("click",()=>{
+        if(isDone()) return;
+        const ok=i===it.a;
+        submit(ok);
+        b.classList.add(ok?"right":"wrong"); b.disabled=true;
+        if(isDone()){ [...opts.children].forEach((x,k)=>{ x.disabled=true; if(k===it.a) x.classList.add("right"); }); }
+        else if(ctx==="review" && !ok){ [...opts.children].forEach((x,k)=>{ if(k===it.a) x.classList.add("right"); x.disabled=true; }); }
+        refresh();
+      });
+      opts.append(b);
+    });
+    if(st.done && ctx!=="review"){ [...opts.children].forEach((x,k)=>{ x.disabled=true; if(k===it.a) x.classList.add("right"); }); }
+    box.append(opts);
+  }
+  else if(S.type==="match"){
+    const id="sel-"+ctx+"-"+it.id;
+    const sel=h("select",{id},h("option",{value:""},"— выбери —"),...S.options.map((o,i)=>h("option",{value:i},`${"abcdef"[i]}) ${o}`)));
+    sel.addEventListener("change",()=>{
+      if(isDone()||sel.value==="") return;
+      const ok=Number(sel.value)===it.a;
+      submit(ok);
+      if(isDone()||ctx==="review"&&!ok){ sel.value=String(it.a); sel.disabled=true; }
+      refresh();
+    });
+    if(st.done && ctx!=="review"){ sel.value=String(it.a); sel.disabled=true; }
+    box.append(h("div",{class:"match-row"},h("label",{for:id,class:"q"},h("span",{class:"n num"},it.n),h("b",{class:"txt"},it.q)),sel));
+  }
+  else {
+    const id="in-"+ctx+"-"+it.id;
+    const inp=h("input",{class:"word",id,type:"text",autocomplete:"off",autocapitalize:"off",spellcheck:"false","aria-label":"Ответ"});
+    inp.addEventListener("focus",()=>{ lastInput=inp; });
+    const check=()=>{
+      if(isDone()||!inp.value.trim()) return;
+      const ok=it.a.some(a=>norm(a)===norm(inp.value));
+      submit(ok);
+      if(ok){ inp.classList.remove("bad"); inp.classList.add("ok"); inp.disabled=true; btn.disabled=true; }
+      else { inp.classList.add("bad"); if(isDone()||ctx==="review"){ inp.value=it.a[0]; inp.disabled=true; btn.disabled=true; } }
+      refresh();
+    };
+    inp.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); check(); }});
+    inp.addEventListener("input",()=>inp.classList.remove("bad"));
+    const btn=h("button",{class:"chk",type:"button",onclick:check},"Проверить");
+    if(st.done && ctx!=="review"){ inp.value=it.a[0]; inp.disabled=true; btn.disabled=true; inp.classList.add(st.ok?"ok":"bad"); }
+    if(S.type==="gap"){
+      const parts=it.q.split("___");
+      box.append(h("div",{class:"q"},h("span",{class:"n num"},it.n),h("div",{class:"txt"},parts[0],inp,parts[1]||"")));
+      box.append(h("div",{class:"def-row"},btn));
+    } else {
+      const ans=it.a[0];
+      const hint = ans.split(" ").map(w=>w[0]+"…").join(" ");
+      const letters = ans.replace(/[\s-]/g,"").length;
+      box.append(h("div",{class:"q"},h("span",{class:"n num"},it.n),h("div",{class:"txt"},it.q)));
+      box.append(h("div",{class:"def-row"},h("span",{class:"hint"},`${hint} (${letters} ${plural(letters,["буква","буквы","букв"])}${ans.includes(" ")?", 2 слова":""}${ans.includes("-")?", через дефис":""})`),inp,btn));
+    }
+  }
+  box.append(fb); refresh();
+  return box;
+}
+
+/* ======================= VIEWS ======================= */
+function updateHeader(){
+  const i=levelIdx(state.xp), cur=LEVELS[i], nxt=LEVELS[i+1];
+  $("#lvlN").textContent=i+1; $("#lvlName").textContent=cur.name; $("#xpNow").textContent=state.xp;
+  if(nxt){ const p=(state.xp-cur.xp)/(nxt.xp-cur.xp)*100; $("#xpFill").style.width=Math.max(2,p)+"%"; $("#xpNext").textContent=`до ${nxt.name}: ${nxt.xp-state.xp} XP`; }
+  else { $("#xpFill").style.width="100%"; $("#xpNext").textContent="максимальный уровень"; }
+  const now=new Date(); now.setHours(0,0,0,0);
+  const d=Math.round((TEST_DATE-now)/86400000);
+  $("#countdown").textContent = d>0?`до теста ${d} ${plural(d,["день","дня","дней"])}`: d===0?"тест сегодня":"тест прошёл";
+  $("#mCnt").textContent=state.mistakes.length;
+}
+
+function setView(v, lessonId){
+  view=v; curLesson=lessonId||null;
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-current", String(t.dataset.view===v || (v==="lesson"&&t.dataset.view==="home"))));
+  const hash = v==="lesson"?`lesson-${lessonId}`: v==="home"?"":v;
+  if(location.hash.slice(1)!==hash){ try{ history.replaceState(null,"",hash?"#"+hash:location.pathname+location.search); }catch(e){ location.hash=hash; } }
+  review={};
+  render(); window.scrollTo(0,0);
+}
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>setView(t.dataset.view)));
+function routeFromHash(){
+  const hs=location.hash.slice(1);
+  if(hs.startsWith("lesson-")){ const id=hs.slice(7); const L=LESSONS.find(x=>x.id===id&&x.ready); if(L){ view="lesson"; curLesson=id; return; } }
+  if(hs==="mistakes"||hs==="badges"){ view=hs; return; }
+  view="home";
+}
+window.addEventListener("hashchange",()=>{ routeFromHash(); render(); });
+
+function render(){
+  const m=$("#main"); m.replaceChildren();
+  if(view==="lesson") renderLesson(m);
+  else if(view==="mistakes") renderMistakes(m);
+  else if(view==="badges") renderBadges(m);
+  else renderHome(m);
+  m.append(h("div",{class:"sync",id:"sync"},syncText()));
+  updateHeader();
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-current", String(t.dataset.view===view || (view==="lesson"&&t.dataset.view==="home"))));
+}
+
+function renderHome(m){
+  const next = LESSONS.find(L=>L.ready && lessonProgress(L).pct<100);
+  const hero=h("section",{class:"card hero"},
+    h("div",{},
+      h("h1",{},"Подготовка к тесту по Unit 7–8"),
+      h("p",{}, next?`Следующий урок: ${next.title} (${next.dow} ${next.day}). За каждый правильный ответ ты получаешь XP и повышаешь уровень.`
+                 :"Все открытые уроки пройдены. Повтори ошибки, пока не откроется следующий урок.")),
+    next?h("button",{class:"btn",onclick:()=>setView("lesson",next.id)}, lessonProgress(next).done?"Продолжить":"Начать урок")
+        :h("button",{class:"btn",onclick:()=>setView("mistakes")},"К ошибкам"));
+  const answered=Object.values(state.items).filter(x=>x.d).length;
+  const firstTry=Object.values(state.items).filter(x=>x.d&&x.ok&&x.t===0).length;
+  const acc = answered?Math.round(firstTry/answered*100):0;
+  const stats=h("section",{class:"stats"},
+    h("div",{class:"stat"},h("b",{class:"num"},state.xp),h("span",{},"всего XP")),
+    h("div",{class:"stat"},h("b",{class:"num"},answered?acc+"%":"—"),h("span",{},"с первой попытки")),
+    h("div",{class:"stat"},h("b",{class:"num"},state.mistakes.length),h("span",{},"ошибок к повтору")),
+    h("div",{class:"stat"},h("b",{class:"num"},state.bestCombo),h("span",{},"лучшая серия")));
+  const list=h("section",{class:"lessons","aria-label":"Уроки"});
+  LESSONS.forEach((L,i)=>{
+    const p=lessonProgress(L);
+    const cls="lesson "+(L.ready?(p.pct===100?"done":"ready"):"locked");
+    const pill = !L.ready?h("span",{class:"pill"},`откроется ${L.day}`)
+               : p.pct===100?h("span",{class:"pill ok"},"пройден")
+               : h("span",{class:"pill go"}, p.done?`${p.pct}%`:"открыт");
+    const body=h("div",{},h("h3",{},`${i+1}. ${L.title}`),h("p",{},L.sub), L.ready?h("div",{class:"prog"},h("i",{style:`width:${p.pct}%`})):null);
+    const date=h("div",{class:"date"},h("b",{class:"num"},L.day.slice(0,2)),L.dow+" · "+["","","","","","","","","","","","ноя","дек"][Number(L.day.slice(3,5))]);
+    const el = L.ready? h("button",{class:cls,type:"button",onclick:()=>setView("lesson",L.id)},date,body,pill)
+                      : h("div",{class:cls},date,body,pill);
+    list.append(el);
+  });
+  m.append(hero, stats, h("h2",{style:"font-size:18px"},"Уроки"), list);
+}
+
+function renderLesson(m){
+  const L=LESSONS.find(x=>x.id===curLesson); if(!L){ view="home"; return renderHome(m); }
+  const p=lessonProgress(L);
+  m.append(h("button",{class:"back",type:"button",onclick:()=>setView("home")},"← Все уроки"));
+  const head=h("section",{class:"lhead"},
+    h("h2",{},L.title), h("p",{},`${L.sub}. Учебник Business Partner B2+, с. 67–71.`),
+    h("p",{},"Правильно с первой попытки: +10 XP. Со второй: +5 XP. Упражнение пройдено: +20 XP, без ошибок ещё +20. Урок пройден: +50 XP."));
+  m.append(head);
+  if(p.pct===100){
+    m.append(h("div",{class:"done-banner"},
+      h("div",{},h("b",{},"Урок пройден. "),`Ошибок к повтору: ${state.mistakes.filter(id=>id.startsWith(L.id)).length}.`),
+      h("div",{style:"display:flex;gap:8px;flex-wrap:wrap"},
+        h("button",{class:"btn",onclick:()=>setView("mistakes")},"Повторить ошибки"),
+        h("button",{class:"btn ghost",onclick:()=>{ L.sections.forEach(S=>S.items.forEach(it=>delete state.items[it.id])); state.replay[L.id]=true; save(); render(); }},"Пройти заново (без XP)"))));
+  }
+  // vocab
+  const known=VOCAB_IDS.filter(id=>id.startsWith(L.id)&&state.known[id]).length;
+  const totalW=VOCAB_IDS.filter(id=>id.startsWith(L.id)).length;
+  const vsec=h("section",{class:"card"},
+    h("div",{class:"sec-h"},h("h3",{},h("span",{class:"sec-tag"},"0"),"Словарь"),h("small",{class:"num"},`выучено ${known} из ${totalW}`)),
+    h("p",{class:"sec-sub"},"Прочитай английское слово и вспомни перевод, потом нажми «Перевод». Если вспомнилось верно, отметь «Знаю»: +1 XP за слово."));
+  L.vocab.forEach(g=>{
+    const grid=h("div",{class:"vcards"});
+    g.w.forEach(w=>{
+      const isK=!!state.known[w.id];
+      const ru=h("div",{class:"ru",hidden:!isK},w[1]);
+      const note=w[2]?h("div",{class:"note"},w[2]):null;
+      const card=h("div",{class:"vcard"+(isK?" known":"")},
+        h("div",{},h("div",{class:"en"},w[0]),ru, note&&!isK?null:note));
+      const showBtn=h("button",{type:"button",onclick:()=>{ ru.hidden=!ru.hidden; if(note&&!note.isConnected) ru.after(note); showBtn.textContent=ru.hidden?"Перевод":"Скрыть"; }},isK?"Скрыть":"Перевод");
+      const knBtn=h("button",{type:"button",class:"kn",onclick:()=>{
+        if(state.known[w.id]) return;
+        state.known[w.id]=1; card.classList.add("known"); ru.hidden=false; knBtn.textContent="Выучено"; gain(1);
+        const k=Object.keys(state.known).length; if(k>=30) award("words30");
+        vsec.querySelector(".sec-h small").textContent=`выучено ${VOCAB_IDS.filter(id=>id.startsWith(L.id)&&state.known[id]).length} из ${totalW}`;
+        save();
+      }},isK?"Выучено":"Знаю");
+      card.append(h("div",{class:"vact"},showBtn,knBtn));
+      grid.append(card);
+    });
+    vsec.append(h("div",{class:"vgroup"},h("h4",{},g.g),grid));
+  });
+  m.append(vsec);
+  // exercises
+  L.sections.forEach(S=>{
+    const done=S.items.filter(it=>state.items[it.id]&&state.items[it.id].d).length;
+    const sec=h("section",{class:"card"},
+      h("div",{class:"sec-h"},h("h3",{},h("span",{class:"sec-tag"},S.id),S.title),h("small",{class:"num"},`${done} / ${S.items.length}`)),
+      h("p",{class:"sec-sub"},S.sub));
+    if(S.type==="gap") sec.append(renderBank(S));
+    if(S.type==="match") sec.append(h("div",{class:"bank"},...S.options.map((o,i)=>h("span",{style:"padding:3px 6px;font-size:14px"},`${"abcdef"[i]}) ${o}`))));
+    const items=h("div",{class:"items"});
+    S.items.forEach(it=>items.append(renderItem(it,S,"lesson")));
+    sec.append(items);
+    const upd=()=>setTimeout(()=>{ const d=S.items.filter(it=>state.items[it.id]&&state.items[it.id].d).length; const sm=sec.querySelector(".sec-h small"); if(sm) sm.textContent=`${d} / ${S.items.length}`; },0);
+    sec.addEventListener("click",upd); sec.addEventListener("change",upd); sec.addEventListener("keyup",upd);
+    m.append(sec);
+  });
+}
+function renderBank(S){
+  const bank=h("div",{class:"bank","aria-label":"Слова для пропусков"});
+  S.bank.forEach(w=>{
+    bank.append(h("button",{type:"button",onclick:()=>{
+      if(lastInput && !lastInput.disabled && lastInput.isConnected){ lastInput.value=w; lastInput.classList.remove("bad"); lastInput.focus(); }
+    }},w));
+  });
+  return bank;
+}
+
+function renderMistakes(m){
+  m.append(h("section",{class:"card"},
+    h("div",{class:"sec-h"},h("h3",{},"Работа над ошибками"),h("small",{class:"num"},`исправлено всего: ${state.fixed||0}`)),
+    h("p",{class:"sec-sub",style:"margin:0"},"Здесь собраны все задания, где была хотя бы одна ошибка. Правильный ответ: +5 XP, и задание уходит из списка. Неправильный: задание остаётся, повторишь позже. Перед тестом этот список должен быть пустым.")));
+  if(!state.mistakes.length){ m.append(h("div",{class:"card empty"},"Ошибок к повтору нет.")); return; }
+  const ids=[...state.mistakes].sort(()=>Math.random()-.5);
+  const bySec={};
+  ids.forEach(id=>{ const x=INDEX[id]; if(!x) return; const k=x.L.id+"-"+x.S.id; (bySec[k]=bySec[k]||{L:x.L,S:x.S,ids:[]}).ids.push(id); });
+  Object.values(bySec).forEach(({L,S,ids})=>{
+    const sec=h("section",{class:"card"},h("div",{class:"sec-h"},h("h3",{},h("span",{class:"sec-tag"},S.id),S.title),h("small",{},`${L.title}`)));
+    if(S.type==="gap") sec.append(renderBank(S));
+    const items=h("div",{class:"items"});
+    ids.forEach(id=>items.append(renderItem(INDEX[id].it,S,"review")));
+    sec.append(items); m.append(sec);
+  });
+  m.append(h("button",{class:"btn ghost",type:"button",style:"align-self:flex-start",onclick:()=>{ review={}; render(); }},"Перемешать и начать заново"));
+}
+
+function renderBadges(m){
+  const got=state.badges.length;
+  const grid=h("div",{class:"badges"});
+  BADGES.forEach(b=>grid.append(h("div",{class:"badge"+(state.badges.includes(b.id)?" got":"")},h("div",{class:"ico"},b.ico),h("div",{},h("b",{},b.name),h("span",{},b.desc)))));
+  const li=levelIdx(state.xp);
+  const lv=h("div",{class:"lvl-list"},...LEVELS.map((l,i)=>h("div",{class:"lvl-row"+(i===li?" cur":"")},h("span",{},`${i+1}. ${l.name}`),h("span",{class:"num"},`${l.xp} XP`))));
+  m.append(
+    h("section",{class:"card"},h("div",{class:"sec-h"},h("h3",{},"Достижения"),h("small",{class:"num"},`${got} из ${BADGES.length}`)),grid),
+    h("section",{class:"card"},h("div",{class:"sec-h"},h("h3",{},"Уровни"),h("small",{class:"num"},`сейчас ${state.xp} XP`)),lv));
+}
+
+/* ======================= START ======================= */
+routeFromHash();
+render();
+initDb();
+</script>
+</body>
+</html>
